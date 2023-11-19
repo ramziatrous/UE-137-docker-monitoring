@@ -1,0 +1,46 @@
+- name: update all packages
+  apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+- name: upgrade all packages
+  apt: upgrade=dist force_apt_get=yes
+- name: Docker installieren
+  apt:
+    name: docker.io
+    state: present
+- name: Pip installieren
+  apt:
+    name: python3-pip
+    state: present
+
+- name: Docker-Python-Bibliothek installieren
+  pip:
+    name: docker
+    state: present
+
+- name: Docker Compose installieren
+  pip:
+    name: docker-compose
+    state: present
+
+- name: Docker Dienst aktivieren und starten
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Sicherstellen, dass der Benutzer zur Docker-Gruppe gehört
+  user:
+    name: "{{ ansible_user }}"
+    append: yes
+    groups: docker
+- name: Dateien kopieren
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: yes
+  loop:
+    - { src: "files/docker-compose.yml", dest: "/home/{{ ansible_user }}/" }
+    - { src: "files/node-exporter.yml", dest: "/home/{{ ansible_user }}/" }
+    - { src: "files/first_rules.yml", dest: "/home/{{ ansible_user }}/" }
+    - { src: "files/prometheus.yml", dest: "/home/{{ ansible_user }}/" }
+- name: Container erstellen
+  command: "docker-compose -f docker-compose.yml up -d"

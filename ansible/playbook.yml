@@ -1,0 +1,6 @@
+---
+- name: docker monitoring
+  hosts: ec2
+  roles: 
+  - docker
+  become: true
